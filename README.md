@@ -1,4 +1,3 @@
-# base_project
-base project, with a README.md
+# Breakthrough
 
-created to be a default for projects in GitHub Classroom
+Game Project
