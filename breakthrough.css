@@ -1,0 +1,34 @@
+body {
+    margin: 0px;
+    background-color: rgb(56,220, 250);
+    overflow: hidden;
+}
+
+.title {
+    font-family: 'Roboto', sans-serif;
+    font-size: 50px;
+    color: navy;
+    text-align: center;
+}
+
+#center-this {
+    text-align: center;
+}
+
+#button {
+
+}
+
+canvas {
+    border: 1px solid #d3d3d3;
+    background-color: #000066;
+    /* centering code from https://stackoverflow.com/questions/5127937/how-to-center-canvas-in-html5 */
+    padding: 0;
+    margin: auto;
+    display: block;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
