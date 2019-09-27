@@ -1,13 +1,13 @@
 body {
     margin: 0px;
-    background-color: rgb(56,220, 250);
+    background-color: black;
     overflow: hidden;
 }
 
 .title {
-    font-family: 'Roboto', sans-serif;
+    font-family: Courier, monospace;
     font-size: 50px;
-    color: navy;
+    color: white;
     text-align: center;
 }
 
@@ -16,12 +16,14 @@ body {
 }
 
 #button {
-
+    border-radius: 8px;
+    font-size: 16px;
 }
 
 canvas {
     border: 1px solid #d3d3d3;
-    background-color: #000066;
+    background-image: url('mario.jpg');
+    background-size: auto;
     /* centering code from https://stackoverflow.com/questions/5127937/how-to-center-canvas-in-html5 */
     padding: 0;
     margin: auto;

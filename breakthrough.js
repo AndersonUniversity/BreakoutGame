@@ -11,8 +11,6 @@ let paddle;
 let ball;
 /** bricks object array */
 let bricks;
-let bricks2;
-let bricks3;
 /** left edge of screen */
 let leftEdge;
 /** right edge of screen */
@@ -27,15 +25,11 @@ let score = 0;
 let bounces = 0;
 /** paddleBounceEffect the current max size of the speed change */
 let paddleBounceEffect = 1;
-/** BRICK_PADDING padding to the left/right of brick */
-let brick_padding = 5;
 
 /** @const {number} SCREEN_X x dimension of screen */
 const SCREEN_X = 480;
 /** @const {number} SCREEN_Y y dimension of screen */
 const SCREEN_Y = 270;
-/** @const {number} OFFSET_X x offset from edge of canvas */
-const OFFSET_X = 10;
 /** @const {number} OFFSET_Y y offset from edge of canvas */
 const OFFSET_Y = 10;
 /** @const {number} PADDLE_WIDTH width of the paddles */
@@ -46,14 +40,14 @@ const PADDLE_HEIGHT = 10;
 const BRICK_WIDTH = 70;
 /** @const {number} BRICK_HEIGHT height of the brick */
 const BRICK_HEIGHT = 15;
-// /** @const {number} BRICK_PADDING padding to the left/right of brick */
-// const BRICK_PADDING = 5;
+/** @const {number} MAX_BRICKS maximum number of bricks */
+const MAX_BRICKS = 18;
 /** @const {number} BALL_DIM width/height of the square ball */
 const BALL_DIM = 20;
 /** @const {number} BALL_SPEED the speed of the ball */
 const BALL_SPEED = 2;
 /** @const {number} RANDOM_EFFECT the max size of initial randomness added */
-const RANDOM_EFFECT = 4;
+const RANDOM_EFFECT = 0.5;
 /** @const {number} PADDLE_SPEED the speed of the paddle */
 const PADDLE_SPEED = 3;
 /** @const {number} LEFT_KEY the keycode of the up arrow key */
@@ -61,24 +55,23 @@ const LEFT_KEY = 37;
 /** @const {number} RIGHT_KEY the keycode of the down arrow key */
 const RIGHT_KEY = 39;
 /** @const {string} PADDLE_COLORS the colors of the paddles */
-const PADDLE_COLORS = 'grey';
+const PADDLE_COLORS = 'black';
 /** @const {string} BRICK_COLOR the color of the bricks */
-const BRICK_COLOR = 'red';
+const BRICK_COLOR = 'darkred';
 /** @const {string} BALL_COLOR the color of the ball */
-const BALL_COLOR = 'grey';
+const BALL_COLOR = 'black';
 /** @CONST {STRING} SCORE_COLOR the color of the score text */
-const SCORE_COLOR = 'blue';
+const SCORE_COLOR = 'black';
 /** @const {number} BOUNCES_PER_SCORE the number of bounces per point */
 const BOUNCES_PER_SCORE = 1;
 /** @const {number} BOUNCES_PER_SPEEDUP the number of bounces per speed increase */
 const BOUNCES_PER_SPEEDUP = 5;
 /** @const {number} SPEED_INCREMENT the amount to speed up each time */
-const SPEED_INCREMENT = 0.5;
+const SPEED_INCREMENT = 1;
 /** @const {number} Y_ATTENUATOR the fraction to attenuate the y randomness
  * to increase playability by reducing vertical speed */
 const Y_ATTENUATOR = 0.25;
 
-// TODO replicate paddle to make bricks
 /**
  * Sets up the game canvas and components of the game.
  * Called when the body of the html file is loaded.
@@ -87,40 +80,38 @@ function startGame() {
     // call the function in the BreakthroughGame object to initialize the game
     BreakthroughGame.start();
 
-    // reset score, bounces, and bricks, in case of a button push
+    // reset score, bounces, bricks, and set brick_paddings, in case of a button push
     score = 0;
     bounces = 0;
+    let brick_padding_1 = 5;
+    let brick_padding_2 = 5;
+    let brick_padding_3 = 5;
     bricks = [];
-    bricks2 = [];
-    bricks3 = [];
 
     // paddle starts on the bottom centered
     paddle = new Component(PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_COLORS, (SCREEN_X - PADDLE_WIDTH) / 2, SCREEN_Y - PADDLE_HEIGHT - OFFSET_Y);
 
-    // create bricks row 1
-    for (let i = 0; i < 6; i++) {
-        bricks[i] = new Component(BRICK_WIDTH, BRICK_HEIGHT, BRICK_COLOR, brick_padding, 5);
-        brick_padding = brick_padding + BRICK_WIDTH + 10;
-    }
-
-    brick_padding = 5;
-    // create bricks row 2
-    for (let i = 0; i < 6; i++) {
-        bricks2[i] = new Component(BRICK_WIDTH, BRICK_HEIGHT, BRICK_COLOR, brick_padding, BRICK_HEIGHT * 2);
-        brick_padding = brick_padding + BRICK_WIDTH + 10;
-    }
-
-    brick_padding = 5;
-    // create bricks rwo 3
-    for (let i = 0; i < 6; i++) {
-        bricks3[i] = new Component(BRICK_WIDTH, BRICK_HEIGHT, BRICK_COLOR, brick_padding, (BRICK_HEIGHT * 3) + 10);
-        brick_padding = brick_padding + BRICK_WIDTH + 10;
+    // create bricks
+    for (let i = 0; i < MAX_BRICKS; i++) {
+        if (i < 6) {
+            // row 1
+            bricks[i] = new Component(BRICK_WIDTH, BRICK_HEIGHT, BRICK_COLOR, brick_padding_1, 5);
+            brick_padding_1 = brick_padding_1 + BRICK_WIDTH + 10;
+        } else if (i < 12) {
+            // row 2
+            bricks[i] = new Component(BRICK_WIDTH, BRICK_HEIGHT, BRICK_COLOR, brick_padding_2, BRICK_HEIGHT * 2);
+            brick_padding_2 = brick_padding_2 + BRICK_WIDTH + 10;
+        } else {
+            // row 3
+            bricks[i] = new Component(BRICK_WIDTH, BRICK_HEIGHT, BRICK_COLOR, brick_padding_3, (BRICK_HEIGHT * 3) + 10);
+            brick_padding_3 = brick_padding_3 + BRICK_WIDTH + 10;
+        }
     }
 
     // ball starts in the middle, moving with an initial velocity
     ball = new Component(BALL_DIM, BALL_DIM, BALL_COLOR, SCREEN_X/2.0, SCREEN_Y/2.0);
-    ball.speedX = BALL_SPEED;
-    ball.speedY = getRandomValue() * RANDOM_EFFECT;  // random Y speed
+    ball.speedX = getRandomValue() * RANDOM_EFFECT;  // random X speed
+    ball.speedY = BALL_SPEED;
 
     // create left and right boundaries, which are not drawn, just used
     // to detect if ball reaches the edge
@@ -201,10 +192,10 @@ let BreakthroughGame = {
         this.clear();
         // draw end of game message
         let ctx = BreakthroughGame.context;
-        ctx.font = '42px Arial';
+        ctx.font = '42px Courier, monospace';
         ctx.fillStyle = PADDLE_COLORS;
         ctx.textAlign = 'center';
-        // note that string literals use back-single-quotes
+        // string literals use back-single-quotes
         ctx.fillText('Game Over!',SCREEN_X/2, SCREEN_Y/2);
         ctx.fillText(`Score ${score}`,SCREEN_X/2, SCREEN_Y/2+42);
     }
@@ -324,14 +315,10 @@ function Component(width, height, color, x, y, type="rectangle") {
      * Reverse direction, as if it is bouncing off a paddle.
      */
     this.paddle_bounce = function() {
-        // on the right paddle, x is positive-large, and speedX is positive
-        // need to make speedX negative, then add the negative speed to the
-        // x position to move it left and get it "off" the paddle so it doesn't
+        // on the paddle, y is positive-large, and speedY is positive
+        // need to make speedY negative, then add the negative speed to the
+        // y position to move it up and get it "off" the paddle so it doesn't
         // re-bounce
-
-        // on the left paddle, x is positive-small, and speedX is negative
-        // need to make speedX positive, then add the positive speed to the
-        // x position to move it right, and off the paddle
 
         // change the speed randomly, in x and y, watching out for +/-
         let increment = Math.random() * paddleBounceEffect;
@@ -347,36 +334,30 @@ function Component(width, height, color, x, y, type="rectangle") {
             this.speedY -= increment;
         }
 
-        // reverse directions in X
-        this.speedX = 0-this.speedX;
+        // reverse directions in Y
+        this.speedY = 0-this.speedY;
         // need to back the ball up, or it will get into an infinite
         // loop of collisions!
-        this.x += this.speedX;
-
-        // make sure the speed is not annoying to the player
-        // if (this.speedX < BALL_SPEED) {  // too slow
-        //   this.speedX = BALL_SPEED;
-        // }
-        // if (this.speedY < BALL_SPEED) { // too slow
-        //   this.speedY =BALL_SPEED;
-        // } else if (this.speedY > (this.speedX/Y_ATTENUATOR)) { // too much vertical bounce
-        //   this.speedY *= Y_ATTENUATOR;
-        // }
+        this.y += this.speedY;
     };
 
     /**
-     * Reverse y direction, as if it is bouncing off the top/bottom.
+     * Reverse x or y direction, as if it is bouncing off the left/right.
      */
     this.wall_bounce = function() {
-        // reverse the y speed
-        // if it was going down (positive speed) it will now be
-        // going up (negative speed), and vice versa
-        this.speedY = 0-this.speedY;
+        // reverse the x speed
+        // if it was going right (positive speed) it will now be
+        // going left (negative speed), and vice versa
+        this.speedX = 0-this.speedX;
         // back the ball away from the wall
-        // if speed WAS negative (moving towards top wall), the speed will
-        // be positive now, and we want to move it down, so just add it
-        // if the speed WAS positive (moving towards bottom wall), the
-        // the speed is now negative, so add it to move up.
+        // if speed WAS negative (moving towards left edge), the speed will
+        // be positive now, and we want to move it right, so just add it
+        // if the speed WAS positive (moving towards right edge), the
+        // the speed is now negative, so add it left.
+        this.x += this.speedX;
+
+        // same for the y speed
+        this.speedY = 0-this.speedY;
         this.y += this.speedY;
     };
 } // end Component class
@@ -399,8 +380,9 @@ function updateGameArea() {
 
     // Draw bricks
     drawBricks(bricks);
-    drawBricks(bricks2);
-    drawBricks(bricks3);
+
+    // Collide with brick
+    brickCollision();
 }
 
 /**
@@ -410,10 +392,6 @@ function updateGameArea() {
 function adjustAfterBounce() {
     // count bounces
     bounces++;
-    // add a point for every BOUNCES_PER_SCORE bounces
-    if (bounces % BOUNCES_PER_SCORE === 0) {
-        score++;
-    }
     // increase speed every few bounces
     if (bounces % BOUNCES_PER_SPEEDUP === 0) {
         paddleBounceEffect += SPEED_INCREMENT;
@@ -425,18 +403,17 @@ function adjustAfterBounce() {
  */
 function drawScore() {
     let ctx = BreakthroughGame.context;
-    ctx.font = '24px Arial';
+    ctx.font = '24px Courier, monospace';
     ctx.fillStyle = SCORE_COLOR;
     ctx.textAlign = 'center';
-    // note that string literals use back-single-quotes
     ctx.fillText(`Score ${score}`,SCREEN_X/2,30);
 }
 
 /**
  * Handle the movement of the paddle.
  * @param thisPaddle Which paddle to move
- * @param thisKeyUp Which key means "move paddle up"
- * @param thisKeyDown Which key means "move paddle down"
+ * @param thisKeyLeft Which key means "move paddle up"
+ * @param thisKeyRight Which key means "move paddle down"
  */
 function movePaddle(thisPaddle, thisKeyLeft, thisKeyRight) {
     // first, stop the paddle by default
@@ -465,6 +442,31 @@ function drawBricks(thisBricks) {
     }
 }
 
+// TODO add brick collision here
+/**
+ * Handle ball - brick collision
+ */
+function brickCollision() {
+ // look at move ball function
+    for (let i = 0; i < MAX_BRICKS; i++) {
+        if (ball.collidesWith(bricks[i])) {
+            // remove brick
+            bricks[i] = new Component(0, 0, '', 0, 0);
+            // update score
+            score++;
+            // all bricks have been hit
+            if (score === MAX_BRICKS) {
+                // draw you won message
+                let ctx = BreakthroughGame.context;
+                ctx.font = '42px Courier, monospace';
+                ctx.fillStyle = PADDLE_COLORS;
+                ctx.textAlign = 'center';
+                ctx.fillText('YOU WON!',SCREEN_X/2, SCREEN_Y/2);
+            }
+        }
+    }
+}
+
 /**
  * Handle the movement of the ball (including bounces)
  */
@@ -476,11 +478,11 @@ function moveBall() {
         ball.paddle_bounce();
         // make adjustments to the score and ball speed after a bounce
         adjustAfterBounce();
-    } else if (ball.collidesWith(leftEdge) || ball.collidesWith(rightEdge)) {
-        // ball went off the left or right edge
+    } else if (ball.collidesWith(bottomEdge)) {
+        // ball hits the bottom
         BreakthroughGame.stop();
-    } else if (ball.collidesWith(topEdge) || ball.collidesWith(bottomEdge)) {
-        // if the ball hits the top or bottom edge
+    } else if (ball.collidesWith(leftEdge) || ball.collidesWith(rightEdge) || ball.collidesWith(topEdge)) {
+        // if the ball hits the left, right, or top edge
         ball.wall_bounce();
     }
 
