@@ -24,7 +24,7 @@ let score = 0;
 /** bounce count */
 let bounces = 0;
 /** paddleBounceEffect the current max size of the speed change */
-let paddleBounceEffect = 1;
+let paddleBounceEffect = .5;
 
 /** @const {number} SCREEN_X x dimension of screen */
 const SCREEN_X = 480;
@@ -65,7 +65,7 @@ const SCORE_COLOR = 'black';
 /** @const {number} BOUNCES_PER_SPEEDUP the number of bounces per speed increase */
 const BOUNCES_PER_SPEEDUP = 5;
 /** @const {number} SPEED_INCREMENT the amount to speed up each time */
-const SPEED_INCREMENT = 1;
+const SPEED_INCREMENT = .5;
 /** @const {number} Y_ATTENUATOR the fraction to attenuate the y randomness
  * to increase playability by reducing vertical speed */
 const Y_ATTENUATOR = 0.25;
@@ -447,6 +447,7 @@ function brickCollision() {
     if (ball.collidesWith(bricks[i])) {
       // if it collided, remove brick
       bricks[i] = new Component(0, 0, '', 0, 0);
+      ball.paddle_bounce();
       // update score
       score++;
       // if all bricks have been hit
