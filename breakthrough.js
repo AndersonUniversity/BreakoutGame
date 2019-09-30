@@ -1,5 +1,5 @@
 /**
- * @fileOverview To recreate the Atari-style game of Breakthrough
+ * @fileOverview To recreate the Atari-style game of Breakout
  * Inspiration:  https://www.w3schools.com/graphics/game_intro.asp
  * @author Joy Shaffer
  * @date September 2019
@@ -62,8 +62,6 @@ const BRICK_COLOR = 'darkred';
 const BALL_COLOR = 'black';
 /** @CONST {STRING} SCORE_COLOR the color of the score text */
 const SCORE_COLOR = 'black';
-/** @const {number} BOUNCES_PER_SCORE the number of bounces per point */
-const BOUNCES_PER_SCORE = 1;
 /** @const {number} BOUNCES_PER_SPEEDUP the number of bounces per speed increase */
 const BOUNCES_PER_SPEEDUP = 5;
 /** @const {number} SPEED_INCREMENT the amount to speed up each time */
@@ -77,16 +75,16 @@ const Y_ATTENUATOR = 0.25;
  * Called when the body of the html file is loaded.
  */
 function startGame() {
-    // call the function in the BreakthroughGame object to initialize the game
-    BreakthroughGame.start();
+    // call the function in the Breakout object to initialize the game
+    BreakoutGame.start();
 
-    // reset score, bounces, bricks, and set brick_paddings, in case of a button push
+    // reset score, bounces, bricks, and set brick_padding(s), in case of a button push
     score = 0;
     bounces = 0;
+    bricks = [];
     let brick_padding_1 = 5;
     let brick_padding_2 = 5;
     let brick_padding_3 = 5;
-    bricks = [];
 
     // paddle starts on the bottom centered
     paddle = new Component(PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_COLORS, (SCREEN_X - PADDLE_WIDTH) / 2, SCREEN_Y - PADDLE_HEIGHT - OFFSET_Y);
@@ -140,9 +138,9 @@ function getRandomValue() {
 }
 
 /**
- * @class Represents the Breakthrough game canvas and actions.
+ * @class Represents the Breakout game canvas and actions.
  */
-let BreakthroughGame = {
+let BreakoutGame = {
     /** the rectangular HTML element that is our game play area */
     // create the canvas
     canvas : document.createElement('canvas'),
@@ -167,12 +165,12 @@ let BreakthroughGame = {
         // if the user presses a key, copy the code into the key variable in this class
         // multiple keys are allowed at one time
         window.addEventListener('keydown', function (e) {
-            BreakthroughGame.keys = (BreakthroughGame.keys || []);
-            BreakthroughGame.keys[e.keyCode] = true;
+            BreakoutGame.keys = (BreakoutGame.keys || []);
+            BreakoutGame.keys[e.keyCode] = true;
         });
 
         window.addEventListener('keyup', function (e) {
-            BreakthroughGame.keys[e.keyCode] = false;
+            BreakoutGame.keys[e.keyCode] = false;
         });
     }, // end start function
 
@@ -191,7 +189,7 @@ let BreakthroughGame = {
         // clear screen
         this.clear();
         // draw end of game message
-        let ctx = BreakthroughGame.context;
+        let ctx = BreakoutGame.context;
         ctx.font = '42px Courier, monospace';
         ctx.fillStyle = PADDLE_COLORS;
         ctx.textAlign = 'center';
@@ -199,7 +197,7 @@ let BreakthroughGame = {
         ctx.fillText('Game Over!',SCREEN_X/2, SCREEN_Y/2);
         ctx.fillText(`Score ${score}`,SCREEN_X/2, SCREEN_Y/2+42);
     }
-}; // end of Breakthrough class
+}; // end of Breakout class
 
 /**
  * @class Represents rectangular shaped component such as a paddle or ball,
@@ -243,7 +241,7 @@ function Component(width, height, color, x, y, type="rectangle") {
         /** @type {CanvasRenderingContext2D | WebGLRenderingContext | *}
          *        the canvas representing the game board
          */
-        let ctx = BreakthroughGame.context;  // get access to the canvas
+        let ctx = BreakoutGame.context;  // get access to the canvas
         // if it is an image...
         if (type === "image") {
             // draw the image
@@ -272,7 +270,6 @@ function Component(width, height, color, x, y, type="rectangle") {
         }
     };
 
-    // TODO use with collision detection for ball to blocks
     /**
      * Collision detection between two objects -- do they touch?
      * @param otherObj The other object to determine if they overlap
@@ -310,7 +307,6 @@ function Component(width, height, color, x, y, type="rectangle") {
         return crash;
     };
 
-    // TODO change / work on this for one paddle
     /**
      * Reverse direction, as if it is bouncing off a paddle.
      */
@@ -367,7 +363,7 @@ function Component(width, height, color, x, y, type="rectangle") {
  */
 function updateGameArea() {
     // clear screen
-    BreakthroughGame.clear();
+    BreakoutGame.clear();
 
     // Draw score
     drawScore();
@@ -386,7 +382,7 @@ function updateGameArea() {
 }
 
 /**
- * Each bounce affects the game by increasing the score and
+ * Each brick hit affects the game by increasing the score and
  * changing the speed of the ball.
  */
 function adjustAfterBounce() {
@@ -402,7 +398,7 @@ function adjustAfterBounce() {
  * Draw the score on the Canvas
  */
 function drawScore() {
-    let ctx = BreakthroughGame.context;
+    let ctx = BreakoutGame.context;
     ctx.font = '24px Courier, monospace';
     ctx.fillStyle = SCORE_COLOR;
     ctx.textAlign = 'center';
@@ -412,8 +408,8 @@ function drawScore() {
 /**
  * Handle the movement of the paddle.
  * @param thisPaddle Which paddle to move
- * @param thisKeyLeft Which key means "move paddle up"
- * @param thisKeyRight Which key means "move paddle down"
+ * @param thisKeyLeft Which key means "move paddle left"
+ * @param thisKeyRight Which key means "move paddle right"
  */
 function movePaddle(thisPaddle, thisKeyLeft, thisKeyRight) {
     // first, stop the paddle by default
@@ -421,10 +417,10 @@ function movePaddle(thisPaddle, thisKeyLeft, thisKeyRight) {
     thisPaddle.speedY = 0;
 
     // if the user presses the left or right arrow keys
-    if (BreakthroughGame.keys && BreakthroughGame.keys[thisKeyLeft]) {
+    if (BreakoutGame.keys && BreakoutGame.keys[thisKeyLeft]) {
         thisPaddle.speedX = -PADDLE_SPEED;
     }
-    if (BreakthroughGame.keys && BreakthroughGame.keys[thisKeyRight]) {
+    if (BreakoutGame.keys && BreakoutGame.keys[thisKeyRight]) {
         thisPaddle.speedX = PADDLE_SPEED;
     }
     thisPaddle.newPos();    // move it
@@ -436,28 +432,27 @@ function movePaddle(thisPaddle, thisKeyLeft, thisKeyRight) {
  * @param thisBricks the bricks array to update
  */
 function drawBricks(thisBricks) {
-    // update each brick in the array
+    // update each brick in the array as it is drawn on the canvas
     for (let i = 0; i < thisBricks.length; i++) {
         thisBricks[i].update();
     }
 }
 
-// TODO add brick collision here
 /**
  * Handle ball - brick collision
  */
 function brickCollision() {
- // look at move ball function
+    // loop through each brick
     for (let i = 0; i < MAX_BRICKS; i++) {
         if (ball.collidesWith(bricks[i])) {
-            // remove brick
+            // if it collided, remove brick
             bricks[i] = new Component(0, 0, '', 0, 0);
             // update score
             score++;
-            // all bricks have been hit
+            // if all bricks have been hit
             if (score === MAX_BRICKS) {
                 // draw you won message
-                let ctx = BreakthroughGame.context;
+                let ctx = BreakoutGame.context;
                 ctx.font = '42px Courier, monospace';
                 ctx.fillStyle = PADDLE_COLORS;
                 ctx.textAlign = 'center';
@@ -480,7 +475,7 @@ function moveBall() {
         adjustAfterBounce();
     } else if (ball.collidesWith(bottomEdge)) {
         // ball hits the bottom
-        BreakthroughGame.stop();
+        BreakoutGame.stop();
     } else if (ball.collidesWith(leftEdge) || ball.collidesWith(rightEdge) || ball.collidesWith(topEdge)) {
         // if the ball hits the left, right, or top edge
         ball.wall_bounce();
